@@ -129,12 +129,12 @@ int peek(struct Stack* stack)
     return stack->array[stack->top];
 }
 
-int revolver(Ficha* fichasPartida)
-{
+//int revolver(Ficha* fichasPartida)
+//{
 	
-	Stack* Pozo = createStack();
+	//Stack* Pozo = createStack();
 	
-}
+//}
 
 
 int main()
@@ -162,7 +162,7 @@ int main()
         	printf(".");
         	sleep(1);
         	printf(".");
-        	revolver(fichasPartida);
+        	//revolver(fichasPartida);
 			break;
 		case 2:
 			printf("Construcion too...");
