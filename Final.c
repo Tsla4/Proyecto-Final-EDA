@@ -15,11 +15,55 @@ Ficha* crearFichas(int numFichas)
 	{
 		for(char color='A'; color <='D'; color++)
 		{
+			if(color=='A'){
 			fichas[contador].numero = numero;
 			fichas[contador].color = color;
 			contador++;
+			}
+			if(color=='B'){
+			fichas[contador].numero = numero;
+			fichas[contador].color = 'N';
+			contador++;
+			}
+			if(color=='C'){
+			fichas[contador].numero = numero;
+			fichas[contador].color = 'R';
+			contador++;
+			}
+			if(color=='D'){
+			fichas[contador].numero = numero;
+			fichas[contador].color = 'V';
+			contador++;
+			}
 		}
 	}
+	for (int numero = 1; numero<=13; numero++)
+	{
+		for(char color='A'; color <='D'; color++)
+		{
+			if(color=='A'){
+			fichas[contador].numero = numero;
+			fichas[contador].color = color;
+			contador++;
+			}
+			if(color=='B'){
+			fichas[contador].numero = numero;
+			fichas[contador].color = 'N';
+			contador++;
+			}
+			if(color=='C'){
+			fichas[contador].numero = numero;
+			fichas[contador].color = 'R';
+			contador++;
+			}
+			if(color=='D'){
+			fichas[contador].numero = numero;
+			fichas[contador].color = 'V';
+			contador++;
+			}
+		}
+	}
+	return fichas;
 }
 
 //STACKS
@@ -85,12 +129,18 @@ int peek(struct Stack* stack)
     return stack->array[stack->top];
 }
 
+int revolver(Ficha* fichasPartida)
+{
+	
+	Stack* Pozo = createStack();
+	
+}
 
 
 int main()
 {
-	int elec, i;
-	int numFichas = 52;
+	int elec, i=0;
+	int numFichas = 104;
 	Ficha* fichasPartida = crearFichas(numFichas);
 	system("color 0E");
 	printf( "BIENVENDIO A RUMMY DE LOS EDAMIGOS!\n" );
@@ -100,9 +150,19 @@ int main()
 	{
 		case 1:
 
-			printf("ESTAS SON TODAS lAS FICHAS DEL JUEGO");
-			for (i = 0; i < numFichas; i++)
-        		printf("Ficha %d: %d, %c, ", i+1, fichasPartida[i].numero, fichasPartida[i].color);
+			printf("ESTAS SON TODAS lAS FICHAS DEL JUEGO:\n");
+			for(i=0;i<numFichas;i++)
+        		printf("%d%c, ",fichasPartida[i].numero, fichasPartida[i].color);
+        	printf("\nREVOLVIENDO LAS FICHAS");
+        	sleep(1);
+        	printf(".");
+        	sleep(1);
+        	printf(".");
+        	sleep(1);
+        	printf(".");
+        	sleep(1);
+        	printf(".");
+        	revolver(fichasPartida);
 			break;
 		case 2:
 			printf("Construcion too...");
