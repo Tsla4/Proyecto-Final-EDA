@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+int x = 0;
+char jugador[15] = "";
+
 typedef struct
 {
 	char color;
@@ -73,17 +76,17 @@ Ficha* crearFichas(int numFichas)
 }
 
 //STACKS
-struct Stack {
+typedef struct {
     int top;
     unsigned capacity;
     Ficha* array;
-};
+}Stack;
 
 // function to create a stack of given capacity. It initializes size of
 // stack as 0
-struct Stack* createStack()
+Stack* createStack()
 {
-    struct Stack* stack = (struct Stack*)malloc(sizeof(struct Stack));
+    Stack* stack = (Stack*)malloc(sizeof(Stack));
     stack->capacity = 110;
     stack->top = -1;
     stack->array = (Ficha*)malloc(stack->capacity * sizeof(Ficha));
@@ -91,19 +94,19 @@ struct Stack* createStack()
 }
 
 // Stack is full when top is equal to the last index
-int isFull(struct Stack* stack)
+int isFull(Stack* stack)
 {
     return stack->top == stack->capacity - 1;
 }
 
 // Stack is empty when top is equal to -1
-int isEmpty(struct Stack* stack)
+int isEmpty(Stack* stack)
 {
     return stack->top == -1;
 }
 
 // Function to add an item to stack.  It increases top by 1
-void push(struct Stack* stack, Ficha item)
+void push(Stack* stack, Ficha item)
 {
     if (isFull(stack)){
       printf("\tOverflow!\n");
@@ -111,11 +114,11 @@ void push(struct Stack* stack, Ficha item)
     }
 
     stack->array[++stack->top] = item;
-    printf("(%d%c) pushed to stack\n", item.numero, item.color);
+    //printf("(%d%c) pushed to stack\n", item.numero, item.color);
 }
 
 // Function to remove an item from stack.  It decreases top by 1
-Ficha pop(struct Stack* stack)
+Ficha pop(Stack* stack)
 {
     if (isEmpty(stack)){
       printf("\tUnderflow!\n");
@@ -126,7 +129,7 @@ Ficha pop(struct Stack* stack)
 }
 
 // Function to return the top from stack without removing it
-Ficha peek(struct Stack* stack)
+Ficha peek(Stack* stack)
 {
     if (isEmpty(stack)){
       printf("\tUnderflow!\n");
@@ -136,12 +139,64 @@ Ficha peek(struct Stack* stack)
 
     return stack->array[stack->top];
 }
+//FIN STACKS
 
+//MANOS DE JUGADORES DLL
 
-int revolver(Ficha* fichasPartida)
+typedef struct node{
+    Ficha key;
+    struct node* prev;
+    struct node* next;
+ 
+} node;
+ 
+// Head, Tail, first & temp Node
+typedef struct {
+node* head;
+node* tail;
+} Hand;
+
+Hand* createHand(){
+	Hand* hand = (Hand*)malloc(sizeof(Hand));
+	hand->head=NULL;
+	hand->tail=NULL;
+	return hand;
+}
+
+void addToHand(Hand* hand, Ficha ficha) {
+    node* newNode = (node*)malloc(sizeof(node));
+    newNode->key = ficha;
+    newNode->prev = hand->tail;
+    newNode->next = NULL;
+    if (hand->tail != NULL) {
+        hand->tail->next = newNode;
+    }
+    hand->tail = newNode;
+    if (hand->head == NULL) {
+        hand->head = newNode;
+    }
+}
+
+void printHand(Hand* hand) {
+    node* current = hand->head;
+    while (current != NULL) {
+        printf("(%d%c) ", current->key.numero, current->key.color);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+Ficha* removeFromHand(Hand* hand, int pos)
+{
+	
+}
+
+//FIN MANOS DE JUGADORES DLL
+
+Stack* revolver(Ficha* fichasPartida)
 {
     // Crear una stack para las fichas
-    struct Stack* Pozo = createStack();
+    Stack* Pozo = createStack();
 
     // Arreglo de índices para representar las posiciones de las fichas
     int* indices = (int*)malloc(sizeof(int) * 106);
@@ -163,7 +218,31 @@ int revolver(Ficha* fichasPartida)
         push(Pozo, ficha);
         }
 	free(indices);
-    return 0;
+    return Pozo;
+}
+int loading(){
+	sleep(1);
+    printf(".");
+	sleep(1);
+	printf(".");
+	sleep(1);
+	printf(".");
+	sleep(1);
+	printf(".");
+	sleep(1);
+	return 0;	
+}
+int crearManos()
+{
+
+	return 0;
+	
+}
+
+Hand repartir(Hand* manoJu, struct Stack* Pozo)
+{
+	for(int i=0;i<15;i++)
+		addToHand(manoJu, pop(Pozo));
 }
 
 int main()
@@ -180,25 +259,37 @@ int main()
 	switch(elec)
 	{
 		case 1:
-
+			printf("INTRODUCE TU NOMBRE:\n");
+			scanf("%s", jugador);
 			printf("ESTAS SON TODAS lAS FICHAS DEL JUEGO:\n");
 			for(i=0;i<numFichas;i++)
         		printf("%d%c, ",fichasPartida[i].numero, fichasPartida[i].color);
         	printf("\nREVOLVIENDO LAS FICHAS");
-        	sleep(1);
-        	printf(".");
-        	sleep(1);
-        	printf(".");
-        	sleep(1);
-        	printf(".");
-        	sleep(1);
-        	printf(".");
-        	revolver(fichasPartida);
+        	loading();
+			Stack* Pozo = revolver(fichasPartida);
+			Hand* jugador1 = createHand();
+			Hand* CPU1 =createHand();
+			Hand* CPU2 =createHand();
+			Hand* CPU3 =createHand();
+        	repartir(jugador1, Pozo);
+        	repartir(CPU1, Pozo);
+        	repartir(CPU2, Pozo);
+        	repartir(CPU3, Pozo);
+        	printf("\nREPARTIENDO FICHAS");
+        	loading();
+        	system("CLS");
+        	printf("\nFichas en la mano de %s:\n", jugador);
+        	printHand(jugador1);
+        	printf("\nFichas en la mano de CPU1:\n");
+        	printHand(CPU1);
+        	printf("\nFichas en la mano de CPU2:\n");
+        	printHand(CPU2);
+        	printf("\nFichas en la mano de CPU3:\n");
+        	printHand(CPU3);
         	system("pause");
-        	//repartir(Pozo);
 			break;
 		case 2:
-			printf("Construcion too...");
+			printf("Construccion");
 			system("pause");
 			break;
 		case 3:
