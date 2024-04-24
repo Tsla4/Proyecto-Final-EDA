@@ -1,0 +1,311 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <time.h>
+
+#define NUM_JUGADORES 4
+#define NUM_FICHAS_COMODIN 2
+#define NUM_COLORS 4
+#define NUM_NUMBERS 13
+#define NUM_FICHAS_TOTAL (NUM_COLORS * NUM_NUMBERS + NUM_FICHAS_COMODIN)
+
+// Estructura para representar una ficha
+typedef struct {
+    char color;
+    int number;
+} Ficha;
+
+// Nodo para la lista doblemente enlazada de jugadas
+typedef struct Nodo {
+    Ficha ficha;
+    struct Nodo* prev;
+    struct Nodo* next;
+} Nodo;
+
+// Estructura para la lista doblemente enlazada de jugadas
+typedef struct {
+    Nodo* head;
+    Nodo* tail;
+    int size;
+} ListaJugadas;
+
+// Estructura para representar un jugador
+typedef struct {
+    int id;
+    Ficha fichas[13]; // Máximo 13 fichas por jugador
+    int numFichas; // Número actual de fichas en la mano del jugador
+} Jugador;
+
+// ... definiciones de funciones previas ...
+
+// Función para repartir fichas aleatorias a cada jugador
+void repartirFichas(Jugador* jugadores, Ficha* pozo) {
+    // Inicializar la semilla aleatoria
+    srand(time(NULL));
+
+    // Iterar sobre cada jugador
+    for (int i = 0; i < NUM_JUGADORES; ++i) {
+        jugadores[i].numFichas = 0; // Inicializar el número de fichas para el jugador actual
+        // Repartir 13 fichas a cada jugador
+        for (int j = 0; j < 13; ++j) {
+            int indice = rand() % NUM_FICHAS_TOTAL;
+            jugadores[i].fichas[j] = pozo[indice];
+            jugadores[i].numFichas++; // Incrementar el número de fichas del jugador
+            // Eliminar la ficha repartida del pozo
+            for (int k = indice; k < NUM_FICHAS_TOTAL - 1; ++k) {
+                pozo[k] = pozo[k + 1];
+            }
+        }
+    }
+}
+
+// Función para calcular la puntuación de un trío de cartas
+int calcularPuntuacion(Ficha cartas[]) {
+    int puntos = 0;
+    // Sumar los números de las cartas
+    for (int i = 0; i < 3; ++i) {
+        puntos += cartas[i].number;
+    }
+    // Sumar los colores de las cartas
+    int contador[NUM_COLORS] = {0};
+    for (int i = 0; i < 3; ++i) {
+        if (cartas[i].color == 'R') {
+            contador[0]++;
+        } else if (cartas[i].color == 'G') {
+            contador[1]++;
+        } else if (cartas[i].color == 'B') {
+            contador[2]++;
+        } else if (cartas[i].color == 'Y') {
+            contador[3]++;
+        }
+    }
+    for (int i = 0; i < NUM_COLORS; ++i) {
+        if (contador[i] > 1) {
+            puntos += contador[i];
+        }
+    }
+    return puntos;
+}
+
+// Función para permitir que un jugador juegue si la puntuación de su trío de cartas es menor que 25
+bool puedeJugar(Ficha cartas[]) {
+    int puntos = calcularPuntuacion(cartas);
+    return puntos < 25;
+}
+
+
+// Función para crear un jugador
+Jugador* crearJugador(int id) {
+    Jugador* jugador = (Jugador*)malloc(sizeof(Jugador));
+    jugador->id = id;
+    jugador->numFichas = 0; // Inicializar el número de fichas del jugador
+    return jugador;
+}
+
+// Función para liberar la memoria de los jugadores
+void liberarMemoria(Jugador* jugadores) {
+    for (int i = 0; i < NUM_JUGADORES; ++i) {
+        free(jugadores[i].fichas); // Liberar memoria de las fichas del jugador
+    }
+}
+
+// Función para inicializar las fichas del juego
+void inicializarFichas(Ficha fichas[]) {
+    int index = 0;
+    for (int color = 0; color < NUM_COLORS; color++) {
+        for (int number = 1; number <= NUM_NUMBERS; number++) {
+            fichas[index].color = 'A' + color;
+            fichas[index].number = number;
+            index++;
+        }
+    }
+    // Agregar fichas comodín
+    for (int i = 0; i < NUM_FICHAS_COMODIN; i++) {
+        fichas[NUM_NUMBERS + i].color = 'C';
+        fichas[NUM_NUMBERS + i].number = 0; // Número de comodín
+    }
+}
+
+// Función para mezclar las fichas del juego
+void mezclarFichas(Ficha fichas[]) {
+    srand(time(NULL));
+    for (int i = 0; i < NUM_FICHAS_TOTAL; i++) {
+        int j = rand() % NUM_FICHAS_TOTAL;
+        Ficha temp = fichas[i];
+        fichas[i] = fichas[j];
+        fichas[j] = temp;
+    }
+}
+
+// Función para imprimir las fichas de un jugador
+void imprimirFichasJugador(Jugador* jugador) {
+    printf("Jugador %d:\n", jugador->id);
+    printf("Fichas: ");
+    for (int i = 0; i < NUM_NUMBERS; i++) {
+        printf("%c%d ", jugador->fichas[i].color, jugador->fichas[i].number);
+    }
+    printf("\n");
+}
+
+// Función para inicializar la cola circular de jugadores
+Jugador* inicializarColaJugadores() {
+    Jugador* head = NULL;
+    Jugador* tail = NULL;
+    for (int i = 1; i <= NUM_JUGADORES; ++i) {
+        Jugador* nuevoJugador = crearJugador(i);
+        if (head == NULL) {
+            head = nuevoJugador;
+        } else {
+            tail->next = nuevoJugador;
+        }
+        tail = nuevoJugador;
+    }
+    return head;
+}
+
+// Función para jugar
+void jugar(Jugador* jugadores, Ficha fichas[]) {
+    Jugador* actual = jugadores;
+    do {
+        printf("\nTurno del jugador %d:\n", actual->id);
+        imprimirFichasJugador(actual);
+        // Aquí va la lógica del juego...
+        actual = actual; // Avanzar al siguiente jugador (circular)
+    } while (actual != jugadores);
+}
+
+// Función para inicializar la lista de jugadas
+void inicializarListaJugadas(ListaJugadas* lista) {
+    lista->head = NULL;
+    lista->tail = NULL;
+    lista->size = 0;
+}
+
+// Función para liberar la memoria de la lista de jugadas
+void liberarListaJugadas(ListaJugadas* lista) {
+    Nodo* current = lista->head;
+    while (current != NULL) {
+        Nodo* temp = current;
+        current = current->next;
+        free(temp);
+    }
+    lista->head = NULL;
+    lista->tail = NULL;
+    lista->size = 0;
+}
+
+// Función para imprimir la lista de jugadas
+void imprimirListaJugadas(ListaJugadas* lista) {
+    Nodo* current = lista->head;
+    int jugada = 1;
+    while (current != NULL) {
+        printf("(Jugada%d): %c%d\n", jugada++, current->ficha.color, current->ficha.number);
+        current = current->next;
+    }
+}
+
+Nodo* buscarPosicionNumero(ListaJugadas* lista, Ficha ficha) {
+    Nodo* current = lista->head;
+    while (current != NULL) {
+        if (ficha.number < current->ficha.number) {
+            return current;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
+
+// Función para encontrar la posición adecuada para insertar una nueva ficha por colores
+Nodo* buscarPosicionColor(ListaJugadas* lista, Ficha ficha) {
+    Nodo* current = lista->head;
+    while (current != NULL) {
+        if (ficha.color < current->ficha.color || (ficha.color == current->ficha.color && ficha.number < current->ficha.number)) {
+            return current;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
+
+// Función para insertar una nueva ficha en la lista de jugadas
+void insertarJugada(ListaJugadas* lista, Ficha ficha) {
+    Nodo* nuevoNodo = (Nodo*)malloc(sizeof(Nodo));
+    if (nuevoNodo == NULL) {
+        printf("Error: No se pudo asignar memoria para el nodo.\n");
+        exit(1);
+    }
+    nuevoNodo->ficha = ficha;
+    nuevoNodo->prev = NULL;
+    nuevoNodo->next = NULL;
+
+    if (lista->head == NULL) {
+        lista->head = nuevoNodo;
+        lista->tail = nuevoNodo;
+    } else {
+        Nodo* posicion;
+        // Si hay menos de 3 jugadas, simplemente agregamos al final
+        if (lista->size < 3) {
+            posicion = lista->tail;
+        } else {
+            // Elegimos la posición adecuada según el color o número
+            if (ficha.color == 'C') { // Ficha especial: COMODIN
+                posicion = buscarPosicionNumero(lista, ficha);
+            } else {
+                posicion = buscarPosicionColor(lista, ficha);
+            }
+            if (posicion == NULL) { // Si no encontramos una posición adecuada, insertamos al final
+                posicion = lista->tail;
+            }
+        }
+        if (posicion == NULL) { // Si la lista está vacía, agregamos al principio
+            nuevoNodo->next = lista->head;
+            lista->head->prev = nuevoNodo;
+            lista->head = nuevoNodo;
+        } else {
+            nuevoNodo->prev = posicion;
+            nuevoNodo->next = posicion->next;
+            if (posicion->next != NULL) {
+                posicion->next->prev = nuevoNodo;
+            }
+            posicion->next = nuevoNodo;
+            if (posicion == lista->tail) { // Si insertamos al final, actualizamos la cola
+                lista->tail = nuevoNodo;
+            }
+        }
+    }
+    lista->size++;
+}
+
+int main() {
+    // Crear y mezclar las fichas del juego
+    Ficha fichas[NUM_FICHAS_TOTAL];
+    inicializarFichas(fichas);
+    mezclarFichas(fichas);
+
+    // Inicializar la lista de jugadas
+    ListaJugadas listaJugadas;
+    inicializarListaJugadas(&listaJugadas);
+
+    // Ejemplo de jugadas: Insertar algunas fichas en la lista
+    insertarJugada(&listaJugadas, fichas[0]);
+    insertarJugada(&listaJugadas, fichas[10]);
+    insertarJugada(&listaJugadas, fichas[20]);
+
+    // Imprimir el estado del juego
+    printf("Rummy Status--\n\n");
+    printf("Mesa:\n");
+    imprimirListaJugadas(&listaJugadas);
+
+    // Liberar la memoria de la lista de jugadas
+    liberarListaJugadas(&listaJugadas);
+
+    // Liberar la memoria de las fichas
+    free(fichas);
+
+    // Inicializar y jugar con los jugadores
+    Jugador* jugadores = inicializarColaJugadores();
+    jugar(jugadores, fichas);
+    liberarMemoria(jugadores);
+
+    return 0;
+}
