@@ -1,0 +1,428 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <limits.h>
+#include <unistd.h> // Se agregó la biblioteca para la función sleep
+
+int x = 0;
+char jugador[15] = "";
+
+typedef struct {
+    char color;
+    int numero;
+} Ficha;
+
+Ficha* crearFichas(int numFichas) {
+    Ficha* fichas = (Ficha*)malloc(numFichas * sizeof(Ficha));
+    int contador=0;
+    for (int numero = 1; numero<=13; numero++) {
+        for(char color='A'; color <='D'; color++) {
+            if(color=='A') {
+                fichas[contador].numero = numero;
+                fichas[contador].color = color;
+                contador++;
+            }
+            if(color=='B') {
+                fichas[contador].numero = numero;
+                fichas[contador].color = 'N';
+                contador++;
+            }
+            if(color=='C') {
+                fichas[contador].numero = numero;
+                fichas[contador].color = 'R';
+                contador++;
+            }
+            if(color=='D') {
+                fichas[contador].numero = numero;
+                fichas[contador].color = 'V';
+                contador++;
+            }
+        }
+    }
+    for (int numero = 1; numero<=13; numero++) {
+        for(char color='A'; color <='D'; color++) {
+            if(color=='A') {
+                fichas[contador].numero = numero;
+                fichas[contador].color = color;
+                contador++;
+            }
+            if(color=='B') {
+                fichas[contador].numero = numero;
+                fichas[contador].color = 'N';
+                contador++;
+            }
+            if(color=='C') {
+                fichas[contador].numero = numero;
+                fichas[contador].color = 'R';
+                contador++;
+            }
+            if(color=='D') {
+                fichas[contador].numero = numero;
+                fichas[contador].color = 'V';
+                contador++;
+            }
+        }
+    }
+    fichas[104].numero = 0;
+    fichas[104].color = 'C';
+    fichas[105].numero = 0;
+    fichas[105].color = 'C';
+    
+    return fichas;
+}
+
+//STACKS
+typedef struct {
+    int top;
+    unsigned capacity;
+    Ficha* array;
+} Stack;
+
+// function to create a stack of given capacity. It initializes size of
+// stack as 0
+Stack* createStack() {
+    Stack* stack = (Stack*)malloc(sizeof(Stack));
+    stack->capacity = 110;
+    stack->top = -1;
+    stack->array = (Ficha*)malloc(stack->capacity * sizeof(Ficha));
+    return stack;
+}
+
+// Stack is full when top is equal to the last index
+int isFull(Stack* stack) {
+    return stack->top == stack->capacity - 1;
+}
+
+// Stack is empty when top is equal to -1
+int isEmpty(Stack* stack) {
+    return stack->top == -1;
+}
+
+// Estructura para representar una jugada en el juego Rummy
+typedef struct {
+    Ficha* fichas; // Array de fichas jugadas
+    int numFichas; // Número de fichas en la jugada
+    char* tipo;    // Tipo de jugada (por ejemplo, secuencia o grupo)
+} Jugada;
+
+// Estructura para representar la lista de jugadas
+typedef struct node_jugada {
+    Jugada jugada;
+    struct node_jugada* next;
+} NodeJugada;
+
+NodeJugada* listaJugadas = NULL; // Inicializamos la lista de jugadas
+
+// Función para agregar una nueva jugada a la lista
+void agregarJugada(Jugada nuevaJugada) {
+    NodeJugada* newNode = (NodeJugada*)malloc(sizeof(NodeJugada));
+    newNode->jugada = nuevaJugada;
+    newNode->next = NULL;
+
+    // Si la lista está vacía, el nuevo nodo se convierte en el primer nodo
+    if (listaJugadas == NULL) {
+        listaJugadas = newNode;
+    } else {
+        // De lo contrario, encontramos el último nodo y lo enlazamos con el nuevo nodo
+        NodeJugada* temp = listaJugadas;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = newNode;
+    }
+}
+
+// Función para imprimir el estado actual del juego
+void imprimirEstadoJuego() {
+    printf("-- Rummy Status --\n");
+
+    // Imprimir las jugadas de cada jugador
+    NodeJugada* temp = listaJugadas;
+    while (temp != NULL) {
+        printf("\nJugador:\n");
+        printf("Fichas: ");
+        for (int i = 0; i < temp->jugada.numFichas; i++) {
+            printf("%d%c ", temp->jugada.fichas[i].numero, temp->jugada.fichas[i].color);
+        }
+        printf("\n");
+        temp = temp->next;
+    }
+}
+
+// Function to add an item to stack.  It increases top by 1
+void push(Stack* stack, Ficha item) {
+    if (isFull(stack)){
+      printf("\tOverflow!\n");
+      return;
+    }
+
+    stack->array[++stack->top] = item;
+    //printf("(%d%c) pushed to stack\n", item.numero, item.color);
+}
+
+// Function to remove an item from stack.  It decreases top by 1
+Ficha pop(Stack* stack) {
+    if (isEmpty(stack)){
+      printf("\tUnderflow!\n");
+      Ficha emptyFicha = { .color = '\0', .numero = INT_MIN };
+      return emptyFicha;
+    }
+    return stack->array[stack->top--];
+}
+
+// Function to return the top from stack without removing it
+Ficha peek(Stack* stack) {
+    if (isEmpty(stack)){
+      printf("\tUnderflow!\n");
+      Ficha emptyFicha = { .color = '\0', .numero = INT_MIN };
+      return emptyFicha;
+    }
+
+    return stack->array[stack->top];
+}
+//FIN STACKS
+
+//MANOS DE JUGADORES DLL
+
+typedef struct node{
+    Ficha key;
+    struct node* prev;
+    struct node* next;
+ 
+} node;
+ 
+// Head, Tail, first & temp Node
+typedef struct {
+    node* head;
+    node* tail;
+} Hand;
+
+Hand* createHand(){
+    Hand* hand = (Hand*)malloc(sizeof(Hand));
+    hand->head=NULL;
+    hand->tail=NULL;
+    return hand;
+}
+
+void addToHand(Hand* hand, Ficha ficha) {
+    node* newNode = (node*)malloc(sizeof(node));
+    newNode->key = ficha;
+    newNode->prev = hand->tail;
+    newNode->next = NULL;
+    if (hand->tail != NULL) {
+        hand->tail->next = newNode;
+    }
+    hand->tail = newNode;
+    if (hand->head == NULL) {
+        hand->head = newNode;
+    }
+}
+
+void printHand(Hand* hand) {
+    node* current = hand->head;
+    while (current != NULL) {
+        printf("(%d%c) ", current->key.numero, current->key.color);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+Ficha* removeFromHand(Hand* hand, int pos) {
+    // Implementación de la eliminación de una ficha de la mano
+}
+
+//FIN MANOS DE JUGADORES DLL
+
+// Definición de la estructura de la cola circular
+typedef struct {
+    int front, rear, size;
+    unsigned capacity;
+    int* array;
+} CircularQueue;
+
+// Función para crear una cola circular
+CircularQueue* createCircularQueue(unsigned capacity) {
+    CircularQueue* queue = (CircularQueue*)malloc(sizeof(CircularQueue));
+    queue->capacity = capacity;
+    queue->front = queue->size = 0;
+    queue->rear = capacity - 1;  // Esto es importante para iniciar rear correctamente
+    queue->array = (int*)malloc(queue->capacity * sizeof(int));
+    return queue;
+}
+
+// Función para verificar si la cola está llena
+int isFullQueue(CircularQueue* queue) {
+    return (queue->size == queue->capacity);
+}
+
+// Función para verificar si la cola está vacía
+int isEmptyQueue(CircularQueue* queue) {
+    return (queue->size == 0);
+}
+
+// Función para encolar un elemento
+void enqueue(CircularQueue* queue, int item) {
+    if (isFullQueue(queue)) {
+        printf("\tCola llena\n");
+        return;
+    }
+    queue->rear = (queue->rear + 1) % queue->capacity;
+    queue->array[queue->rear] = item;
+    queue->size = queue->size + 1;
+}
+
+// Función para desencolar un elemento
+int dequeue(CircularQueue* queue) {
+    if (isEmptyQueue(queue)) {
+        printf("\tCola vacía\n");
+        return -1; // Valor de retorno para indicar error
+    }
+    int item = queue->array[queue->front];
+    queue->front = (queue->front + 1) % queue->capacity;
+    queue->size = queue->size - 1;
+    return item;
+}
+
+// Función para obtener el primer elemento de la cola sin eliminarlo
+int front(CircularQueue* queue) {
+    if (isEmptyQueue(queue)) {
+        printf("\tCola vacía\n");
+        return -1; // Valor de retorno para indicar error
+    }
+    return queue->array[queue->front];
+}
+
+// Función para imprimir la cola circular
+void printCircularQueue(CircularQueue* queue) {
+    int i;
+    if (isEmptyQueue(queue)) {
+        printf("\tCola vacía\n");
+        return;
+    }
+    printf("\tContenido de la cola: ");
+    i = queue->front;
+    while (1) {
+        printf("%d ", queue->array[i]);
+        if (i == queue->rear)
+            break;
+        i = (i + 1) % queue->capacity;
+    }
+    printf("\n");
+}
+
+// Función para liberar la memoria utilizada por la cola circular
+void deleteCircularQueue(CircularQueue* queue) {
+    free(queue->array);
+    free(queue);
+}
+
+// Función para inicializar la cola circular con los jugadores
+CircularQueue* initPlayerQueue(int numPlayers) {
+    CircularQueue* playerQueue = createCircularQueue(numPlayers);
+    for (int i = 1; i <= numPlayers; ++i)
+        enqueue(playerQueue, i);
+    return playerQueue;
+}
+
+Stack* revolver(Ficha* fichasPartida) 
+{
+    // Crear una stack para las fichas
+    Stack* Pozo = createStack();
+
+    // Arreglo de índices para representar las posiciones de las fichas
+    int* indices = (int*)malloc(sizeof(int) * 106);
+    for (int i = 0; i < 106; ++i)
+        indices[i] = i;
+
+    // Barajar los índices aleatoriamente
+    srand(time(NULL));
+    for (int i = 106 - 1; i > 0; --i) {
+        int j = rand() % (i + 1);
+        int temp = indices[i];
+        indices[i] = indices[j];
+        indices[j] = temp;
+    }
+
+    // Iterar sobre los índices barajados y agregar las fichas correspondientes a la stack
+    for (int i = 0; i < 106; ++i) {
+        Ficha ficha = fichasPartida[indices[i]];
+        push(Pozo, ficha);
+        }
+	free(indices);
+    return Pozo;
+}
+
+int loading() {
+	sleep(1);
+    printf(".");
+	sleep(1);
+	printf(".");
+	sleep(1);
+	printf(".");
+	sleep(1);
+	printf(".");
+	sleep(1);
+	return 0;	
+}
+
+int crearManos() {
+
+	return 0;
+	
+}
+
+Hand repartir(Hand* manoJu, Stack* Pozo)
+{
+	for(int i=0;i<15;i++)
+		addToHand(manoJu, pop(Pozo));
+}
+
+int main() {
+    int elec, i=0;
+    int numFichas = 106;
+    Ficha* fichasPartida = crearFichas(numFichas);
+    CircularQueue* playerQueue = NULL;
+    int currentPlayer = -1;
+
+    while (1) {
+        system("CLS");
+        system("color 0E");
+        printf("BIENVENDIO A RUMMY DE LOS EDAMIGOS!\n");
+        printf("Elige una opcion:\n1.-JUGAR\n2.-VER\n3.-SALIR\n");
+        scanf("%d", &elec);
+        switch (elec) {
+            case 1:
+                if (playerQueue == NULL) {
+                    printf("Introduce el numero de jugadores: ");
+                    int numPlayers;
+                    scanf("%d", &numPlayers);
+                    playerQueue = initPlayerQueue(numPlayers);
+                    printf("Se han registrado %d jugadores.\n", numPlayers);
+                }
+
+                if (currentPlayer == -1) {
+                    currentPlayer = dequeue(playerQueue);
+                } else {
+                    enqueue(playerQueue, currentPlayer);
+                    currentPlayer = dequeue(playerQueue);
+                }
+
+                printf("Es el turno del jugador %d.\n", currentPlayer);
+                // Aquí puedes continuar con la lógica del juego...
+                system("pause");
+                break;
+            case 2:
+                printf("Construccion\n");
+                system("pause");
+                break;
+            case 3:
+                return 0;
+            default:
+                printf("Opcion invalida, selecciona un numero del 1 al 3\n");
+                system("pause");
+                break;
+        }
+    }
+    deleteCircularQueue(playerQueue);
+    return 0;
+}
