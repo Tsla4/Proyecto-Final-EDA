@@ -188,6 +188,24 @@ void printHand(Hand* hand) {
 
 Ficha* removeFromHand(Hand* hand, int pos)
 {
+	if (pos < 1 || pos > x + 1) {
+		system("CLS");
+        printf("Ficha inexistente!! Intenta de Nuevo\n");
+    }
+	node* current = hand->head;
+	int cont=1;
+	while(current != NULL && cont!=pos)
+	{
+		current = current->next;
+		cont++;
+	}
+	
+	Ficha tiroFicha = current->key;
+	if(current->prev!=NULL)
+		current->prev->next = current->next;
+	else
+		hand->head = current->next;
+	
 	
 }
 
@@ -232,24 +250,83 @@ int loading(){
 	sleep(1);
 	return 0;	
 }
-int crearManos()
-{
 
-	return 0;
-	
-}
-
-Hand repartir(Hand* manoJu, struct Stack* Pozo)
+Hand repartir(Hand* manoJu, Stack* Pozo)
 {
 	for(int i=0;i<15;i++)
 		addToHand(manoJu, pop(Pozo));
 }
+//Crear cola para jugadores
+typedef struct {
+	Hand* pHands[4];
+	int front;
+	int rear;
+	int size;
+}Turns;
+
+Turns* createTurns()
+{
+	Turns* turnos = (Turns*)malloc(sizeof(Turns));
+	turnos->front=-1;
+	turnos->rear=-1;
+	turnos->size=4;
+	return turnos;	
+}
+
+
+Turns* handToTurns(Hand* manoJug, Turns* turnos)
+{
+	if(turnos->front==-1)
+	{
+		turnos->pHands[0] = manoJug;
+		turnos->front = turnos->front+1;
+		turnos->rear = turnos->rear+1;
+	}
+	else
+	{
+		turnos->rear = (turnos->rear+1) % turnos->size;
+		turnos->pHands[turnos->rear] = manoJug;
+	}
+	system("CLS");
+	printf("Se agrego la mano al juego\n");
+	printHand(manoJug);
+	system("pause");
+	return turnos;
+}
+
+void printTurnos(Turns* turno)
+{
+
+	for(int i=turno->front;i<=turno->rear;i++)
+	{
+		if(i==0)
+			printf("\nMano de %s", jugador);
+		else
+			printf("\nMano de CPU%d", i);
+			
+		printHand(turno->pHands[i]);
+		system("pause");
+	}
+}
+
+//fin cola para jugadores
+
+
+//CREAR MESA
+
+typedef struct {
+    Ficha plays[100];
+    int numPlays;
+} Table;
+
+// FIN MESA
 
 int main()
 {
 	int elec, i=0;
 	int numFichas = 106;
 	Ficha* fichasPartida = crearFichas(numFichas);
+	Turns* turnos = createTurns();
 	while(1){
 	system("CLS");
 	system("color 0E");
@@ -287,6 +364,13 @@ int main()
         	printf("\nFichas en la mano de CPU3:\n");
         	printHand(CPU3);
         	system("pause");
+        	handToTurns(jugador1, turnos);
+        	handToTurns(CPU1, turnos);
+        	handToTurns(CPU2, turnos);
+        	handToTurns(CPU3, turnos);
+        	system("CLS");
+        	printf("Imprimir lista de turnos");
+        	printTurnos(turnos);
 			break;
 		case 2:
 			printf("Construccion");
