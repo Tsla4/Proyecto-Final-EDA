@@ -311,6 +311,35 @@ void printTurnos(Turns* turno)
 
 //fin cola para jugadores
 
+//JUEGO
+
+startGame(Turns* turno, Stack* Pozo)
+{
+	int t=1;
+	int trn=0;
+	while(Pozo!=isEmpty){
+		system("CLS");
+		printf("Turno %d", t);
+		if(trn==0)
+		{
+			printf("\nTurno de %s", jugador);
+			printf("\nTU MANO ES:\n");
+			printHand(turno->pHands[trn]);
+			system("pause");
+		}
+		else
+		{
+			printf("\nTurno de CPU%d", trn);
+			printf("\nCPU%d esta pensando", trn);
+			loading();
+		}
+		trn=(trn+1)%4;
+		t=t+1;
+	}
+}
+
+//Fin Juego
+
 
 //CREAR MESA
 
@@ -338,7 +367,7 @@ int main()
 		case 1:
 			printf("INTRODUCE TU NOMBRE:\n");
 			scanf("%s", jugador);
-			printf("ESTAS SON TODAS lAS FICHAS DEL JUEGO:\n");
+			printf("ESTAS SON TODAS LAS FICHAS DEL JUEGO:\n");
 			for(i=0;i<numFichas;i++)
         		printf("%d%c, ",fichasPartida[i].numero, fichasPartida[i].color);
         	printf("\nREVOLVIENDO LAS FICHAS");
@@ -371,6 +400,13 @@ int main()
         	system("CLS");
         	printf("Imprimir lista de turnos");
         	printTurnos(turnos);
+        	system("CLS");
+        	printf("\nCOMIENZA EL JUEGO!!!!!");
+        	system("pause");
+        	while(1)
+        	{
+        		startGame(turnos, Pozo);
+			}
 			break;
 		case 2:
 			printf("Construccion");
