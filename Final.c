@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+
 int x = 0;
 char jugador[15] = "";
 
@@ -188,10 +189,7 @@ void printHand(Hand* hand) {
 
 Ficha* removeFromHand(Hand* hand, int pos)
 {
-	if (pos < 1 || pos > x + 1) {
-		system("CLS");
-        printf("Ficha inexistente!! Intenta de Nuevo\n");
-    }
+
 	node* current = hand->head;
 	int cont=1;
 	while(current != NULL && cont!=pos)
@@ -311,22 +309,74 @@ void printTurnos(Turns* turno)
 
 //fin cola para jugadores
 
+
+
+
+//CREAR MESA
+
+typedef struct{
+	Ficha* tiro[100];
+	int next;
+	int prev;
+}Jugada;
+
+Jugada* createJugada()
+{
+	Jugada* jugada =(Jugada*)malloc(sizeof(Jugada));
+	jugada->next=-1;
+	jugada->prev=-1;
+	return jugada;
+}
+
+typedef struct{
+	Jugada* jugadas[100];
+	int prev;
+	int next;
+}Mesa;
+
+Mesa* createMesa()
+{
+	Mesa* mesa = (Mesa*)malloc(sizeof(Mesa));	
+	mesa->prev=-1;
+	mesa->next=-1;
+	return mesa;	
+}
+
+
+// FIN MESA
+
+//Gameplay
+
+Jugada* opcionesTiro(Hand* mano)
+{
+
+}
+
+
+//Fin Gameplay
+
 //JUEGO
 
 startGame(Turns* turno, Stack* Pozo)
 {
 	int t=1;
 	int trn=0;
+	Mesa* mesa = createMesa();
+	Jugada* jugadas = createJugada();
+
 	while(Pozo!=isEmpty){
 		system("CLS");
 		printf("Turno %d", t);
+		//TURNO DEL JUGADOR
 		if(trn==0)
 		{
 			printf("\nTurno de %s", jugador);
 			printf("\nTU MANO ES:\n");
 			printHand(turno->pHands[trn]);
+			//opcionesTiro(turno->pHands[trn]);
 			system("pause");
 		}
+		//TURNO DE CPU
 		else
 		{
 			printf("\nTurno de CPU%d", trn);
@@ -338,24 +388,18 @@ startGame(Turns* turno, Stack* Pozo)
 	}
 }
 
+
 //Fin Juego
-
-
-//CREAR MESA
-
-typedef struct {
-    Ficha plays[100];
-    int numPlays;
-} Table;
-
-// FIN MESA
 
 int main()
 {
+
 	int elec, i=0;
 	int numFichas = 106;
 	Ficha* fichasPartida = crearFichas(numFichas);
 	Turns* turnos = createTurns();
+
+	
 	while(1){
 	system("CLS");
 	system("color 0E");
