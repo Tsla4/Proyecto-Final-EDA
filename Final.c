@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-
 int x = 0;
 char jugador[15] = "";
 
@@ -187,24 +186,39 @@ void printHand(Hand* hand) {
     printf("\n");
 }
 
-Ficha* removeFromHand(Hand* hand, int pos)
+Ficha removeFromHand(Hand* hand,int pos)
 {
-
+	Ficha tiroFicha;
 	node* current = hand->head;
-	int cont=1;
+	int cont=0;
 	while(current != NULL && cont!=pos)
 	{
 		current = current->next;
 		cont++;
 	}
 	
-	Ficha tiroFicha = current->key;
+	tiroFicha = current->key;
 	if(current->prev!=NULL)
 		current->prev->next = current->next;
 	else
 		hand->head = current->next;
 	
+	return current->key;
 	
+}
+
+Ficha peekHand(Hand* hand,int pos)
+{
+	Ficha ficha;
+	node* current = hand->head;
+	int cont=0;
+	while(current != NULL && cont != pos)
+	{
+		current = current->next;
+		cont++;
+	}
+	ficha = current->key;
+	return current->key.color;
 }
 
 //FIN MANOS DE JUGADORES DLL
@@ -345,9 +359,34 @@ Mesa* createMesa()
 
 // FIN MESA
 
-//Gameplay
+//
 
-Jugada* opcionesTiro(Hand* mano)
+//
+
+//Gameplay
+void fichasParaJugar(Hand* manoJugador, int tamanoMano)
+{
+	Jugada* jugada = createJugada(); 
+	int seleccion;
+	printf("\nSelecciona la posicion de las ficha que deseas jugar y presiona (ENTER) (Ingresa -1 para terminar)");
+	sleep(2);
+	do
+	{
+		printf("\nIngresa el indice de la ficha que desas jugar: ");
+		scanf("%d", &seleccion);
+		if (seleccion >=0 && seleccion < tamanoMano)
+		{
+			//Ficha* fichaSeleccionada = manoJugador[seleccion-1];
+			
+		}
+		else if(seleccion != -1)
+		printf("Indice invalido. Por favor, selecciona un indice dentro del rango");
+	}
+	while (seleccion != 0);
+}
+
+
+Jugada* ValidPlay(Hand* mano)
 {
 
 }
@@ -373,7 +412,7 @@ startGame(Turns* turno, Stack* Pozo)
 			printf("\nTurno de %s", jugador);
 			printf("\nTU MANO ES:\n");
 			printHand(turno->pHands[trn]);
-			//opcionesTiro(turno->pHands[trn]);
+			//jugada = opcionesTiro(turno->pHands[trn]);
 			system("pause");
 		}
 		//TURNO DE CPU
