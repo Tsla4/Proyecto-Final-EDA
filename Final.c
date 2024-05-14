@@ -218,7 +218,7 @@ Ficha peekHand(Hand* hand,int pos)
 		cont++;
 	}
 	ficha = current->key;
-	return current->key.color;
+	return current->key;
 }
 
 //FIN MANOS DE JUGADORES DLL
@@ -329,7 +329,7 @@ void printTurnos(Turns* turno)
 //CREAR MESA
 
 typedef struct{
-	Ficha* tiro[100];
+	Ficha tiro[100];
 	int next;
 	int prev;
 }Jugada;
@@ -343,7 +343,7 @@ Jugada* createJugada()
 }
 
 typedef struct{
-	Jugada* jugadas[100];
+	Hand* jugadas[100];
 	int prev;
 	int next;
 }Mesa;
@@ -364,31 +364,82 @@ Mesa* createMesa()
 //
 
 //Gameplay
-void fichasParaJugar(Hand* manoJugador, int tamanoMano)
+void fichasParaJugar(Hand* manoJugador)
 {
-	Jugada* jugada = createJugada(); 
+	Hand* jugada = createHand(); 
 	int seleccion;
+	int v=0;
+	char res1, res2, res3;
 	printf("\nSelecciona la posicion de las ficha que deseas jugar y presiona (ENTER) (Ingresa -1 para terminar)");
 	sleep(2);
 	do
 	{
 		printf("\nIngresa el indice de la ficha que desas jugar: ");
 		scanf("%d", &seleccion);
-		if (seleccion >=0 && seleccion < tamanoMano)
+		if (seleccion >=0)
 		{
-			//Ficha* fichaSeleccionada = manoJugador[seleccion-1];
-			
+			addToHand(jugada, peekHand(manoJugador, seleccion-1));
 		}
 		else if(seleccion != -1)
 		printf("Indice invalido. Por favor, selecciona un indice dentro del rango");
 	}
-	while (seleccion != 0);
+	while (seleccion != -1);
+	
+	
+	do
+	{
+	
+	printf("\nLas fichas que seleccionaste son: ");
+	printHand(jugada);
+	setbuf(stdin,NULL);
+	printf("\nEs correcto? S/N\n");
+	scanf("%c", &res1);
+	switch(res1)
+	{
+		case 'S':
+			ValidPlay(manoJugador);
+			break;
+		case 'N':
+			fichasParaJugar(manoJugador);
+		default:
+			printf("\nOpcion no valida, selecciona 'S' para si, 'N para no'");
+			sleep(2);
+			v=1;
+	}
+	}
+	while(v==1);
+	
+	do
+	{
+	setbuf(stdin,NULL);
+	printf("\nQuieres agregar otra jugada? S/N\n");
+	scanf("%c", &res2);
+	system("pause");
+	switch(res2)
+	{
+		case 'S':
+			system("CLS");
+			printf("\nTU MANO ES:\n");
+			printHand(manoJugador);
+			fichasParaJugar(manoJugador);
+		case 'N':
+			break;
+		default:
+			printf("\nOpcion no valida, selecciona 'S' para si, 'N para no'");
+			sleep(2);
+			v=2;
+	}
+	}
+	while(v==2);
+
+
 }
 
 
-Jugada* ValidPlay(Hand* mano)
+int ValidPlay(Hand* mano)
 {
-
+	printf("Bajo construccion...");
+	system("pause");
 }
 
 
@@ -412,6 +463,7 @@ startGame(Turns* turno, Stack* Pozo)
 			printf("\nTurno de %s", jugador);
 			printf("\nTU MANO ES:\n");
 			printHand(turno->pHands[trn]);
+			fichasParaJugar(turno->pHands[trn]);
 			//jugada = opcionesTiro(turno->pHands[trn]);
 			system("pause");
 		}
