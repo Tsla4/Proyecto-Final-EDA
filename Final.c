@@ -5,6 +5,7 @@
 
 int x = 0;
 char jugador[15] = "";
+Mesa* mesa = createMesa();
 
 typedef struct
 {
@@ -357,6 +358,15 @@ Mesa* createMesa()
 	return mesa;	
 }
 
+void addToMesa(Hand* jugada)
+{
+	if(Mesa->next==NULL)
+	{
+		Mesa->jugadas = jugada;
+		Mesa->next = Mesa->jugada->next;
+		Mesa->prev = Mesa->jugada->prev;
+	}
+}
 
 // FIN MESA
 
@@ -365,11 +375,13 @@ Mesa* createMesa()
 //
 
 //Gameplay
-void fichasParaJugar(Hand* manoJugador)
+Hand* fichasParaJugar(Hand* manoJugador)
 {
-	Hand* jugada = createHand(); 
+	Hand* jugada = createHand();
+	Hand* valida = createHand();
+	int remove[15]; 
 	int seleccion;
-	int v=0;
+	int v=0, i=0, valid;
 	char res1, res2, res3;
 	printf("\nSelecciona la posicion de las ficha que deseas jugar y presiona (ENTER) (Ingresa -1 para terminar)");
 	sleep(2);
@@ -383,6 +395,8 @@ void fichasParaJugar(Hand* manoJugador)
 		}
 		else if(seleccion != -1)
 		printf("Indice invalido. Por favor, selecciona un indice dentro del rango");
+		remove[i] = seleccion-1;
+		i++;
 	}
 	while (seleccion != -1);
 	
@@ -398,7 +412,15 @@ void fichasParaJugar(Hand* manoJugador)
 	switch(res1)
 	{
 		case 'S':
-			ValidPlay(jugada);
+			valid = ValidPlay(jugada);
+			if (valid==1)
+			{
+				for(i=0;remove[i]==-1;i++)
+				{
+					addToHand(valida,removeFromHand(manoJugador, remove[i]));
+				}
+				addToMesa(valida);
+			}
 			break;
 		case 'N':
 			fichasParaJugar(manoJugador);
@@ -444,7 +466,13 @@ int ValidPlay(Hand* mano)
 	int val_num = 0, val_col = 0;
 	while(current->next != NULL)
 	{
-		if(current->key.numero+1==current->next->key.numero && current->key.color==current->next->key.color)
+		if(current->key.numero==current->next->key.numero)
+		{
+			val_num++;
+			current = current->next;
+			cont++;
+		}
+		else if(current->key.numero+1==current->next->key.numero && current->key.color==current->next->key.color)
 			{
 			val_num++;
 			val_col++;
@@ -453,23 +481,32 @@ int ValidPlay(Hand* mano)
 			}
 		else
 		{
-			printf("\nNO ES UNA CORRIDA! REVISA TU JUGADA");
+			printf("\nNO ES UNA JUGADA VALIDA!!");
+			
 			//añadir de vuelta a mano jugador
 			return 0;
 		}
 	}
 		if(cont>=2 && val_num == val_col)
 			{
-				printf("ES UNA CORRIDA, SE AGREGA A LA MESA");
+				printf("ES UNA CORRIDA, SE AGREGA A LA MESA\n");
 				system("pause");
+				return 1;
 				//añadir a la mesa
 			}
+		else if(cont>=2 && val_num>=2)	
+		{
+				printf("ES UNA TERCIA, SE AGREGA A LA MESA\n");
+				system("pause");
+				return 1;
+				//añadir a la mesa
+		}
 		else
 		{
 			printf("\nFALTAN FICHAS, LA JUGADA DEBE SER DE 3 O MAS");
 			sleep(2);
 		}
-	return 1;
+	return 0;
 }
 
 
