@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 int x = 0;
 char jugador[15] = "";
@@ -397,7 +398,7 @@ void fichasParaJugar(Hand* manoJugador)
 	switch(res1)
 	{
 		case 'S':
-			ValidPlay(manoJugador);
+			ValidPlay(jugada);
 			break;
 		case 'N':
 			fichasParaJugar(manoJugador);
@@ -438,8 +439,37 @@ void fichasParaJugar(Hand* manoJugador)
 
 int ValidPlay(Hand* mano)
 {
-	printf("Bajo construccion...");
-	system("pause");
+	node* current = mano->head;;
+	int cont=0;
+	int val_num = 0, val_col = 0;
+	while(current->next != NULL)
+	{
+		if(current->key.numero+1==current->next->key.numero && current->key.color==current->next->key.color)
+			{
+			val_num++;
+			val_col++;
+			current = current->next;
+			cont++;
+			}
+		else
+		{
+			printf("\nNO ES UNA CORRIDA! REVISA TU JUGADA");
+			//añadir de vuelta a mano jugador
+			return 0;
+		}
+	}
+		if(cont>=2 && val_num == val_col)
+			{
+				printf("ES UNA CORRIDA, SE AGREGA A LA MESA");
+				system("pause");
+				//añadir a la mesa
+			}
+		else
+		{
+			printf("\nFALTAN FICHAS, LA JUGADA DEBE SER DE 3 O MAS");
+			sleep(2);
+		}
+	return 1;
 }
 
 
