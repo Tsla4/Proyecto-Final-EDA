@@ -5,7 +5,6 @@
 
 int x = 0;
 char jugador[15] = "";
-Mesa* mesa = createMesa();
 
 typedef struct
 {
@@ -345,7 +344,7 @@ Jugada* createJugada()
 }
 
 typedef struct{
-	Hand* jugadas[100];
+	Hand* jugadas;
 	int prev;
 	int next;
 }Mesa;
@@ -358,14 +357,23 @@ Mesa* createMesa()
 	return mesa;	
 }
 
-void addToMesa(Hand* jugada)
+void addToMesa(Mesa* mesa, Hand* jugada)
 {
-	if(Mesa->next==NULL)
+    Hand* newHand = createHand();
+    newHand->head = jugada->head;
+    newHand->tail = jugada->tail;
+
+    if (mesa->next == NULL && mesa->prev == NULL)
 	{
-		Mesa->jugadas = jugada;
-		Mesa->next = Mesa->jugada->next;
-		Mesa->prev = Mesa->jugada->prev;
-	}
+        mesa->jugadas = newHand;
+        mesa->next = newHand;
+        mesa->prev = newHand;
+    }
+	else
+	{
+        mesa->jugadas->tail->next = newHand;
+        mesa->next = newHand;
+    }
 }
 
 // FIN MESA
@@ -375,13 +383,13 @@ void addToMesa(Hand* jugada)
 //
 
 //Gameplay
-Hand* fichasParaJugar(Hand* manoJugador)
+Hand* fichasParaJugar(Hand* manoJugador, Mesa* mesa)
 {
 	Hand* jugada = createHand();
 	Hand* valida = createHand();
 	int remove[15]; 
 	int seleccion;
-	int v=0, i=0, valid;
+	int v=0, i=0, valid, p=0;
 	char res1, res2, res3;
 	printf("\nSelecciona la posicion de las ficha que deseas jugar y presiona (ENTER) (Ingresa -1 para terminar)");
 	sleep(2);
@@ -395,8 +403,11 @@ Hand* fichasParaJugar(Hand* manoJugador)
 		}
 		else if(seleccion != -1)
 		printf("Indice invalido. Por favor, selecciona un indice dentro del rango");
+		
 		remove[i] = seleccion-1;
 		i++;
+		p++;
+		
 	}
 	while (seleccion != -1);
 	
@@ -415,15 +426,19 @@ Hand* fichasParaJugar(Hand* manoJugador)
 			valid = ValidPlay(jugada);
 			if (valid==1)
 			{
-				for(i=0;remove[i]==-1;i++)
+				printf("%d\n", p-1);
+				system("pause");
+				for(i=0; i < p-1;i++)
 				{
-					addToHand(valida,removeFromHand(manoJugador, remove[i]));
+					addToHand(valida,removeFromHand(manoJugador, remove[i]-i));
+					printf("anadiendo %d",i);
+					sleep(1);
 				}
-				addToMesa(valida);
+				//addToMesa(mesa, valida);
 			}
 			break;
 		case 'N':
-			fichasParaJugar(manoJugador);
+			fichasParaJugar(manoJugador, mesa);
 		default:
 			printf("\nOpcion no valida, selecciona 'S' para si, 'N para no'");
 			sleep(2);
@@ -444,7 +459,7 @@ Hand* fichasParaJugar(Hand* manoJugador)
 			system("CLS");
 			printf("\nTU MANO ES:\n");
 			printHand(manoJugador);
-			fichasParaJugar(manoJugador);
+			fichasParaJugar(manoJugador, mesa);
 		case 'N':
 			break;
 		default:
@@ -505,8 +520,8 @@ int ValidPlay(Hand* mano)
 		{
 			printf("\nFALTAN FICHAS, LA JUGADA DEBE SER DE 3 O MAS");
 			sleep(2);
+			return 0;
 		}
-	return 0;
 }
 
 
@@ -514,12 +529,10 @@ int ValidPlay(Hand* mano)
 
 //JUEGO
 
-startGame(Turns* turno, Stack* Pozo)
+startGame(Turns* turno, Stack* Pozo, Mesa* mesa)
 {
 	int t=1;
 	int trn=0;
-	Mesa* mesa = createMesa();
-	Jugada* jugadas = createJugada();
 
 	while(Pozo!=isEmpty){
 		system("CLS");
@@ -530,7 +543,7 @@ startGame(Turns* turno, Stack* Pozo)
 			printf("\nTurno de %s", jugador);
 			printf("\nTU MANO ES:\n");
 			printHand(turno->pHands[trn]);
-			fichasParaJugar(turno->pHands[trn]);
+			fichasParaJugar(turno->pHands[trn], mesa);
 			//jugada = opcionesTiro(turno->pHands[trn]);
 			system("pause");
 		}
@@ -556,6 +569,7 @@ int main()
 	int numFichas = 106;
 	Ficha* fichasPartida = crearFichas(numFichas);
 	Turns* turnos = createTurns();
+	Mesa* mesa = createMesa();
 
 	
 	while(1){
@@ -607,7 +621,7 @@ int main()
         	system("pause");
         	while(1)
         	{
-        		startGame(turnos, Pozo);
+        		startGame(turnos, Pozo, mesa);
 			}
 			break;
 		case 2:
