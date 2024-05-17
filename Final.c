@@ -180,9 +180,11 @@ void addToHand(Hand* hand, Ficha ficha) {
 
 void printHand(Hand* hand) {
     node* current = hand->head;
+    int index = 1; // Variable para mantener el índice de la ficha
     while (current != NULL) {
-        printf("(%d%c) ", current->key.numero, current->key.color);
+        printf("%d:(%d%c) ", index, current->key.numero, current->key.color);
         current = current->next;
+        index++; // Incrementar el índice para la siguiente ficha
     }
     printf("\n");
 }
